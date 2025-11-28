@@ -12,6 +12,32 @@ const router = express.Router();
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     CommentInput:
+ *       type: object
+ *       required:
+ *         - postId
+ *         - user
+ *         - email
+ *         - text
+ *       properties:
+ *         postId:
+ *           type: string
+ *           description: ID of the blog post
+ *         user:
+ *           type: string
+ *           description: Name of the commenter
+ *         email:
+ *           type: string
+ *           description: Email of the commenter
+ *         text:
+ *           type: string
+ *           description: Comment content
+ */
+
+/**
+ * @swagger
  * /api/comments:
  *   post:
  *     summary: Create a new comment
@@ -21,18 +47,7 @@ const router = express.Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               postId:
- *                 type: string
- *               user:
- *                 type: string
- *               text:
- *                 type: string
- *             required:
- *               - postId
- *               - user
- *               - text
+ *             $ref: '#/components/schemas/CommentInput'
  *     responses:
  *       201:
  *         description: Comment created successfully
@@ -53,6 +68,7 @@ router.post("/comments", createComment);
  *         required: true
  *         schema:
  *           type: string
+ *         description: ID of the post
  *     responses:
  *       200:
  *         description: Successfully retrieved comments
@@ -73,6 +89,7 @@ router.get("/comments/:postId", getCommentsByPost);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Comment ID
  *     responses:
  *       200:
  *         description: Comment deleted successfully
