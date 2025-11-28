@@ -3,47 +3,51 @@ import Post from "../models/post";
 import Category from "../models/category";
 import path from "path";
 
-// Create Post (auto-create category if new)
+/// Create Post (auto-create category if new)
 export const createPost = async (req: Request, res: Response): Promise<void> => {
-  const { title, content, excerpt, category, tags, author } = req.body;
+  try {
+    const { title, content, excerpt, category, tags, author } = req.body;
 
-  if (!title || !content || !category) {
-    res.status(400).json({ message: "Title, content and category are required" });
-    return;
+    if (!title || !content || !category) {
+      res.status(400).json({ message: "Title, content and category are required" });
+      return;
+    }
+
+    // Convert tags string → array
+    const tagsArr = Array.isArray(tags)
+      ? tags
+      : (tags ? tags.split(",").map((t: string) => t.trim()) : []);
+
+    // Image upload handling
+    let coverImagePath = "";
+    if (req.file) {
+      coverImagePath = `/uploads/${req.file.filename}`;
+    }
+
+    // Auto-create category if missing
+    let existingCategory = await Category.findOne({ name: category });
+    if (!existingCategory) {
+      existingCategory = await Category.create({ name: category });
+    }
+
+    const post = await Post.create({
+      title,
+      content,
+      excerpt,
+      category: existingCategory._id, // save ObjectId instead of string
+      tags: tagsArr,
+      coverImage: coverImagePath,
+      author
+    });
+
+    res.status(201).json({
+      message: "Post created successfully",
+      post
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Error creating post", error });
   }
-
-  // Convert tags string → array
-  const tagsArr = Array.isArray(tags)
-    ? tags
-    : (tags ? tags.split(",").map((t: string) => t.trim()) : []);
-
-  // If file uploaded, store local path
-  let coverImagePath = "";
-  if (req.file) {
-    coverImagePath = `/uploads/${req.file.filename}`;
-  }
-
-  // ⭐ Auto-create category if it doesn't exist
-  let existingCategory = await Category.findOne({ name: category });
-
-  if (!existingCategory) {
-    existingCategory = await Category.create({ name: category });
-  }
-
-  const post = await Post.create({
-    title,
-    content,
-    excerpt,
-    category: existingCategory.name, // save standardized category
-    tags: tagsArr,
-    coverImage: coverImagePath,
-    author
-  });
-
-  res.status(201).json({
-    message: "Post created successfully",
-    post
-  });
 };
 
 // Get all posts (with pagination)
