@@ -106,13 +106,48 @@ export const deletePost = async (req: Request, res: Response): Promise<void> => 
   return;
 };
 
-// Get posts by category
+// Get posts by category (by name or by id)
 export const getPostsByCategory = async (req: Request, res: Response): Promise<void> => {
-  const { category } = req.params;
-  const posts = await Post.find({ category }).sort({ createdAt: -1 });
-  res.json(posts);
-  return;
+  try {
+    const { category } = req.params;
+
+    // try to find a Category by name first
+    const catByName = await Category.findOne({ name: category });
+
+    // build query that handles:
+    // - posts that reference Category._id (new posts)
+    // - posts that may still have a string category (legacy)
+    const query: any = {};
+
+    if (catByName) {
+      query.$or = [
+        { category: catByName._id },      // ObjectId reference
+        { category: category }            // legacy string category
+      ];
+    } else {
+      // if no Category doc found, search posts where category equals the string,
+      // or posts whose category field is the ObjectId equal to provided param (if user passed id)
+      const isObjectId = /^[0-9a-fA-F]{24}$/.test(category);
+      if (isObjectId) {
+        query.$or = [
+          { category: category },         // maybe stored as string (unlikely)
+          { category: new (require("mongoose").Types.ObjectId)(category) } // as ObjectId
+        ];
+      } else {
+        query.category = category;        // string match only
+      }
+    }
+
+    const posts = await Post.find(query)
+      .sort({ createdAt: -1 })
+      .populate({ path: "category", select: "name" }); // populate category name
+
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching posts by category", error });
+  }
 };
+
 
 // Get posts by tag
 export const getPostsByTag = async (req: Request, res: Response): Promise<void> => {
