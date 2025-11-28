@@ -1,5 +1,9 @@
 import express from "express";
-import { createComment, getCommentsByPost, deleteComment } from "../controllers/commentController";
+import {
+  createComment,
+  getCommentsByPost,
+  deleteComment,
+} from "../controllers/commentController";
 
 const router = express.Router();
 
@@ -8,32 +12,6 @@ const router = express.Router();
  * tags:
  *   name: Comments
  *   description: API for managing comments
- */
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     CommentInput:
- *       type: object
- *       required:
- *         - postId
- *         - user
- *         - email
- *         - text
- *       properties:
- *         postId:
- *           type: string
- *           description: ID of the blog post
- *         user:
- *           type: string
- *           description: Name of the commenter
- *         email:
- *           type: string
- *           description: Email of the commenter
- *         text:
- *           type: string
- *           description: Comment content
  */
 
 /**
@@ -47,12 +25,31 @@ const router = express.Router();
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CommentInput'
+ *             type: object
+ *             properties:
+ *               postId:
+ *                 type: string
+ *                 example: "692995fce7ebea4f5bb53abd"
+ *               user:
+ *                 type: string
+ *                 example: "Arun"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "arun@gmail.com"
+ *               text:
+ *                 type: string
+ *                 example: "Good blog!"
+ *             required:
+ *               - postId
+ *               - user
+ *               - email
+ *               - text
  *     responses:
  *       201:
  *         description: Comment created successfully
  *       400:
- *         description: Invalid request
+ *         description: All fields are required
  */
 router.post("/comments", createComment);
 
@@ -68,7 +65,6 @@ router.post("/comments", createComment);
  *         required: true
  *         schema:
  *           type: string
- *         description: ID of the post
  *     responses:
  *       200:
  *         description: Successfully retrieved comments
@@ -89,7 +85,6 @@ router.get("/comments/:postId", getCommentsByPost);
  *         required: true
  *         schema:
  *           type: string
- *         description: Comment ID
  *     responses:
  *       200:
  *         description: Comment deleted successfully
