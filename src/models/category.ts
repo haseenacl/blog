@@ -6,9 +6,10 @@ export interface CategoryDocument extends Document {
 
 const CategorySchema = new Schema<CategoryDocument>(
   {
-    name: { type: String, required: true, unique: true },
+    name: { type: String, required: true, unique: true, lowercase: true },
   },
   { timestamps: true }
 );
+
 
 export default model<CategoryDocument>("Category", CategorySchema);

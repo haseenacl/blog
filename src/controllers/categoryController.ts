@@ -2,21 +2,35 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import Category from "../models/category";
 
 // Create Category
-export const createCategory: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+export const createCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { name } = req.body;
+    let { name } = req.body;
 
     if (!name) {
       res.status(400).json({ message: "Category name is required" });
       return;
     }
 
+    name = name.toLowerCase();
+
+    const existingCategory = await Category.findOne({ name });
+    if (existingCategory) {
+      res.status(400).json({ message: "Category already exists" });
+      return;
+    }
+
     const category = await Category.create({ name });
-    res.status(201).json(category);
+
+    res.status(201).json({
+      message: "Category created successfully",
+      category
+    });
   } catch (error) {
     next(error);
   }
 };
+
+
 
 // Get All Categories
 export const getAllCategories: RequestHandler = async (_req: Request, res: Response, next: NextFunction) => {

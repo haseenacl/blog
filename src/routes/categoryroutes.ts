@@ -30,7 +30,7 @@ const router = express.Router();
  *       201:
  *         description: Category created successfully
  *       400:
- *         description: Invalid input data
+ *         description: Category already exists / invalid name
  */
 router.post("/categories", createCategory);
 
@@ -65,5 +65,6 @@ router.get("/categories", getAllCategories);
  *         description: Category not found
  */
 router.delete("/categories/:id", deleteCategory);
+
 
 export default router;
